@@ -388,6 +388,9 @@ def main():
                             class_name, class_pq * 100, class_sq * 100, class_rq * 100, class_iou * 100))
                         # gh
                         writer.add_scalars('score_cls/%s' % class_name, {'pq':class_pq * 100, 'sq':class_sq * 100, 'rq':class_rq * 100, 'iou':class_iou * 100}, epoch)
+                        
+                        # gs
+                        wandb.log({f"score_cls/{class_name}": {'pq': class_pq * 100, 'sq': class_sq * 100, 'rq': class_rq * 100, 'iou': class_iou * 100}}, step=epoch)
 
                     thing_upper_idx_dict = {"nuscenes": 10, "SemanticKitti":8} # thing label index: nusc 1-9, kitti 1-8
                     upper_idx = thing_upper_idx_dict[datasetname]
@@ -410,6 +413,11 @@ def main():
                     writer.add_scalars('scores/score', {'pq': PQ * 100, 'sq':SQ * 100, 'rq':RQ * 100, 'miou':miou*100 }, epoch)
                     writer.add_scalars('scores/score_th', {'pq': PQ_th * 100, 'sq':SQ_th * 100, 'rq':RQ_th * 100}, epoch)
                     writer.add_scalars('scores/score_st', {'pq': PQ_st * 100, 'sq':SQ_st * 100, 'rq':RQ_st * 100}, epoch)
+
+                    # gs
+                    wandb.log({"scores/score": {'pq': PQ * 100, 'sq': SQ * 100, 'rq': RQ * 100, 'miou': miou * 100}}, step=epoch)
+                    wandb.log({"scores/score_th": {'pq': PQ_th * 100, 'sq': SQ_th * 100, 'rq': RQ_th * 100}}, step=epoch)
+                    wandb.log({"scores/score_st": {'pq': PQ_st * 100, 'sq': SQ_st * 100, 'rq': RQ_st * 100}}, step=epoch)
                     ######################################################################################################
 
                     # save model if performance is improved
@@ -440,17 +448,30 @@ def main():
                         writer.add_scalar('loss/offset', last_avg_loss, epoch)
                         writer.add_scalar('loss/inst', last_avg_loss, epoch)
 
-
+                        # gs
+                        wandb.log({"loss/avg": last_avg_loss}, step=epoch)
+                        wandb.log({"loss/sem": last_avg_loss}, step=epoch)
+                        wandb.log({"loss/center": last_avg_loss}, step=epoch)
+                        wandb.log({"loss/offset": last_avg_loss}, step=epoch)
+                        wandb.log({"loss/inst": last_avg_loss}, step=epoch)
                     iou = per_class_iu(sum(sem_hist_list))
                     logger.info('Validation per class iou: ')
                     for class_name, class_iou in zip(unique_label_str, iou):
                         logger.info('%s : %.2f%%' % (class_name, class_iou * 100))
                         # gh
                         writer.add_scalar('class_iou/%s'%class_name, class_iou * 100, epoch)
+
+                        #gs
+                        wandb.log({f"class_iou/{class_name}": class_iou * 100}, step=epoch)
+
+
                     val_miou = np.nanmean(iou) * 100
                     logger.info('Current val miou is %.1f' % val_miou)
                     # gh
                     writer.add_scalar('miou', val_miou, epoch)
+
+                    #gs
+                    wandb.log({"miou": val_miou}, step=epoch)
                     print('*' * 40)
                 # end if args.local_rank < 1
                 
